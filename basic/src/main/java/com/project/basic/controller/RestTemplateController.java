@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,14 +23,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.project.basic.openfeign.RoomExpensesResponse;
 import com.project.basic.response.classes.RoomsListTemp;
 
 @Controller
 @RequestMapping("/home")
 public class RestTemplateController {
+	
+	@Autowired
+	private RoomExpensesResponse roomExpensesResponse;
 
-	private RestTemplate restTemplate = new RestTemplate();
-	String baseUrl = "http://localhost:8000/api";
+//	private RestTemplate restTemplate = new RestTemplate();
+//	String baseUrl = "http://localhost:8000/";
 
 	@GetMapping("/createRoom")
 	public String createRoom() {
@@ -45,9 +50,10 @@ public class RestTemplateController {
 			requestBody.put("tableName", roomName);
 			requestBody.put("names", names);
 
-			String url = baseUrl + "/createRoom";
-			ResponseEntity<String> response = restTemplate.postForEntity(url, requestBody, String.class);
+//			String url = baseUrl + "/createRoom";
+//			ResponseEntity<String> response = restTemplate.postForEntity(url, requestBody, String.class);
 
+			ResponseEntity<String> response = roomExpensesResponse.createRoom(requestBody);
 			// Check the response status and redirect accordingly
 			if (response.getStatusCode() == HttpStatus.OK) {
 				return "redirect:/home/getListOfRooms";
@@ -65,16 +71,15 @@ public class RestTemplateController {
 	@GetMapping("/getListOfRooms")
 	public String getListOfRooms(Model model) {
 		try {
-			// Prepare RestTemplate
-			RestTemplate restTemplate = new RestTemplate();
-
 			// Define the REST API endpoint
-			String url = baseUrl + "/getListOfRooms"; // Update to match the REST service URL
+//			String url = baseUrl + "/getListOfRooms"; // Update to match the REST service URL
 
 			// Send a GET request to the REST API and retrieve the response
-			ResponseEntity<List<RoomsListTemp>> response = restTemplate.exchange(url, HttpMethod.GET, null,
-					new ParameterizedTypeReference<List<RoomsListTemp>>() {
-					});
+//			ResponseEntity<List<RoomsListTemp>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+//					new ParameterizedTypeReference<List<RoomsListTemp>>() {
+//					});
+			
+			ResponseEntity<List<RoomsListTemp>> response = roomExpensesResponse.getListOfRooms();
 
 			// Check if the response is successful
 			if (response.getStatusCode() == HttpStatus.OK) {
@@ -98,32 +103,34 @@ public class RestTemplateController {
 			Model model) {
 		try {
 			// Build the API URL dynamically
-			StringBuilder urlBuilder = new StringBuilder(baseUrl + "/getListOfRooms/roomDetails");
-			urlBuilder.append("?roomName=").append(roomName);
-			if (name != null && !name.isEmpty()) {
-				urlBuilder.append("&name=").append(name);
-			}
-			if (fromDate != null && toDate != null) {
-				urlBuilder.append("&fromDate=").append(fromDate);
-				urlBuilder.append("&toDate=").append(toDate);
-			}
-			if (floorPrice != null) {
-				urlBuilder.append("&floorPrice=").append(floorPrice);
-			}
-			if (ceilPrice != null) {
-				urlBuilder.append("&ceilPrice=").append(ceilPrice);
-			}
+//			StringBuilder urlBuilder = new StringBuilder(baseUrl + "/getListOfRooms/roomDetails");
+//			urlBuilder.append("?roomName=").append(roomName);
+//			if (name != null && !name.isEmpty()) {
+//				urlBuilder.append("&name=").append(name);
+//			}
+//			if (fromDate != null && toDate != null) {
+//				urlBuilder.append("&fromDate=").append(fromDate);
+//				urlBuilder.append("&toDate=").append(toDate);
+//			}
+//			if (floorPrice != null) {
+//				urlBuilder.append("&floorPrice=").append(floorPrice);
+//			}
+//			if (ceilPrice != null) {
+//				urlBuilder.append("&ceilPrice=").append(ceilPrice);
+//			}
 
 			// Convert the URL to a string
-			String url = urlBuilder.toString();
+//			String url = urlBuilder.toString();
 
 			// Use RestTemplate to make the GET request
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-
-			HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-			ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Map.class);
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//			HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+//			ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Map.class);
 			// Check if the response is valid
+			ResponseEntity<Map> response = roomExpensesResponse.getRoomDetails(roomName, name, fromDate, toDate, floorPrice, ceilPrice);
+			
 			if (response.getStatusCode().is2xxSuccessful()) {
 				Map<String, Object> responseBody = response.getBody();
 				// Populate the model object for JSP
@@ -149,8 +156,8 @@ public class RestTemplateController {
 		try {
 			// Build URL for the REST API
 //			String url = baseUrl + "/getListOfRooms/roomDetails/addExpenses";
-			String url = baseUrl + "/getListOfRooms/roomDetails/addExpenses?personName=" + personName + "&items="
-					+ items + "&cost=" + cost + "&roomName=" + roomName;
+//			String url = baseUrl + "/getListOfRooms/roomDetails/addExpenses?personName=" + personName + "&items="
+//					+ items + "&cost=" + cost + "&roomName=" + roomName;
 //	        Map<String, Object> requestBody = new HashMap<>();
 //	        requestBody.put("personName", personName);
 //	        requestBody.put("items", items);
@@ -158,8 +165,9 @@ public class RestTemplateController {
 //	        requestBody.put("roomName", roomName);
 
 			// Make the POST request
-			ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+//			ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
+			ResponseEntity<String> response = roomExpensesResponse.addExpenses(personName, items, cost, roomName);
 //			HttpHeaders headers = new HttpHeaders();
 //			headers.setContentType(MediaType.APPLICATION_JSON);
 //
@@ -178,8 +186,9 @@ public class RestTemplateController {
 
 	@GetMapping("/getRoomDetails/getMonthlyToPay")
 	public String getMonthlyToPay(@RequestParam String roomName, Model model) {
-		String url = baseUrl + "/getListOfRooms/roomDetails/getMonthlyToPay?roomName=" + roomName;
-		ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+//		String url = baseUrl + "/getListOfRooms/roomDetails/getMonthlyToPay?roomName=" + roomName;
+//		ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+		ResponseEntity<Map<String, Double>> response = roomExpensesResponse.getMonthlyToPay(roomName);
 		if (response.getStatusCode().is2xxSuccessful()) {
 			Map<String, Double> responseBody = response.getBody();
 			model.addAttribute("paymentsList", responseBody);
@@ -190,9 +199,11 @@ public class RestTemplateController {
 	@PostMapping("/deleteRoom")
 	public String deleteRoom(@RequestParam("name") String roomName) {
 
-		String url = baseUrl + "/deleteRoom?name=" + roomName;
-
-		restTemplate.postForEntity(url, null, String.class);
+//		String url = baseUrl + "/deleteRoom?name=" + roomName;
+//
+//		restTemplate.postForEntity(url, null, String.class);
+		
+		roomExpensesResponse.deleteRoom(roomName);
 
 		return "redirect:/home/getListOfRooms";
 	}
@@ -200,15 +211,16 @@ public class RestTemplateController {
 	@PostMapping("/deleteRecord")
 	public String deleteRecord(@RequestParam String personName, @RequestParam String date,
 			@RequestParam Integer roomId) {
-		String url = baseUrl + "/deleteRecord?personName=" + personName
-												+"&date=" + date
-												+"&roomId=" + roomId;
-		System.out.println(personName+"==="+date+"---"+roomId);
-		ResponseEntity<Map> response = restTemplate.postForEntity(url,null , Map.class);
+//		String url = baseUrl + "/deleteRecord?personName=" + personName
+//												+"&date=" + date
+//												+"&roomId=" + roomId;
+//		System.out.println(personName+"==="+date+"---"+roomId);
+//		ResponseEntity<Map> response = restTemplate.postForEntity(url,null , Map.class);
+		ResponseEntity<Map<String, String>> response = roomExpensesResponse.deleteRecord(personName, date, roomId);
 		String roomName = null;
 		if(response.getStatusCode().is2xxSuccessful())
 		{
-			Map<String, Object> responseBody = response.getBody();
+			Map<String, String> responseBody = response.getBody();
 			roomName = (String) responseBody.get("roomName");
 		}
 		return "redirect:/home/getRoomDetails?roomName="+roomName;
